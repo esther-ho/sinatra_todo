@@ -3,6 +3,8 @@ require "sinatra/reloader"
 require "sinatra/content_for"
 require "tilt/erubis"
 
+require_relative "database_persistence"
+
 configure do
   enable :sessions
   set :session_secret, SecureRandom.hex(32)
@@ -41,64 +43,6 @@ helpers do
   end
 end
 
-class SessionPersistence
-  def initialize(session)
-    @session = session
-    @session[:lists] ||= []
-  end
-
-  def all_lists
-    @session[:lists]
-  end
-
-  def create_new_list(name)
-    id = next_id(@session[:lists])
-    @session[:lists] << { id: id, name: name, todos: [] }
-  end
-
-  def delete_list(id)
-    @session[:lists].delete_at(id)
-  end
-
-  def find_list(id)
-    @session[:lists].find { |list| list[:id] == id }
-  end
-
-  def update_list_name(id, new_name)
-    list = find_list(id)
-    list[:name] = new_name
-  end
-
-  def create_new_todo(list_id, todo_name)
-    list = find_list(list_id)
-    id = next_id(list[:todos])
-    list[:todos] << { id: id, name: todo_name, completed: false }
-  end
-
-  def delete_todo_from_list(list_id, todo_id)
-    list = find_list(list_id)
-    list[:todos].delete_if { |todo| todo[:id] == todo_id }
-  end
-
-  def update_todo_status(list_id, todo_id, new_status)
-    list = find_list(list_id)
-    todo = list[:todos].find { |todo| todo[:id] == todo_id }
-    todo[:completed] = new_status
-  end
-
-  def complete_all_todos(list_id)
-    list = find_list(list_id)
-    list[:todos].each { |todo| todo[:completed] = true }
-  end
-
-  private
-
-  def next_id(collection)
-    current_id = collection.map { |element| element[:id] }.max
-    current_id ? current_id.succ : 0
-  end
-end
-
 # Retrieve list using list id. If list is not found, redirect to "/lists"
 def load_list(id)
   list = @storage.find_list(id)
@@ -109,7 +53,7 @@ def load_list(id)
 end
 
 before do
-  @storage = SessionPersistence.new(session)
+  @storage = DatabasePersistence.new
 end
 
 get "/" do
