@@ -1,13 +1,14 @@
 require "pg"
 
 class DatabasePersistence
-  def initialize
+  def initialize(logger)
     @db = PG.connect(dbname: "todos")
+    @logger = logger
   end
 
   def all_lists
     sql = "SELECT * FROM lists"
-    result = @db.exec(sql)
+    result = query(sql)
 
     result.map do |tuple|
       { id: tuple["id"].to_i, name: tuple["name"], todos: [] }
@@ -52,5 +53,12 @@ class DatabasePersistence
   def complete_all_todos(list_id)
     # list = find_list(list_id)
     # list[:todos].each { |todo| todo[:completed] = true }
+  end
+
+  private
+
+  def query(statement, *params)
+    @logger.info "#{statement}: #{params}"
+    @db.exec_params(statement, params)
   end
 end
