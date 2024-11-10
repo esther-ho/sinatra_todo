@@ -11,7 +11,9 @@ class DatabasePersistence
     result = query(sql)
 
     result.map do |tuple|
-      { id: tuple["id"].to_i, name: tuple["name"], todos: [] }
+      list_id = tuple["id"].to_i
+      todos = find_todos_for_list(list_id)
+      { id: list_id, name: tuple["name"], todos: todos }
     end
   end
 
@@ -25,7 +27,13 @@ class DatabasePersistence
   end
 
   def find_list(id)
-    # @session[:lists].find { |list| list[:id] == id }
+    sql = "SELECT * FROM lists WHERE id = $1"
+    result = query(sql, id)
+
+    tuple = result.first
+    list_id = tuple["id"].to_i
+    todos = find_todos_for_list(list_id)
+    { id: list_id, name: tuple["name"], todos: todos }
   end
 
   def update_list_name(id, new_name)
@@ -60,5 +68,16 @@ class DatabasePersistence
   def query(statement, *params)
     @logger.info "#{statement}: #{params}"
     @db.exec_params(statement, params)
+  end
+
+  def find_todos_for_list(list_id)
+    sql = "SELECT * FROM todos WHERE list_id = $1"
+    result = query(sql, list_id)
+
+    result.map do |tuple|
+      { id: tuple["id"].to_i,
+        name: tuple["name"],
+        completed: (tuple["completed"] == 't') }
+    end
   end
 end
