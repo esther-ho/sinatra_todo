@@ -60,6 +60,10 @@ before do
   @storage = DatabasePersistence.new(logger)
 end
 
+after do
+  @storage.disconnect
+end
+
 get "/" do
   redirect "/lists"
 end

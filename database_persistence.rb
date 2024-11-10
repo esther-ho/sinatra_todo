@@ -6,6 +6,10 @@ class DatabasePersistence
     @logger = logger
   end
 
+  def disconnect
+    @db.close
+  end
+
   def all_lists
     sql = "SELECT * FROM lists"
     result = query(sql)
