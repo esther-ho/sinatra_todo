@@ -16,16 +16,8 @@ configure :development do
 end
 
 helpers do
-  def todos_remaining(list)
-    list[:todos].count { |todo| !todo[:completed] }
-  end
-
-  def todo_count(list)
-    list[:todos].size
-  end
-
   def list_completed?(list)
-    todo_count(list) > 0 && todos_remaining(list) == 0
+    list[:todos_count] > 0 && list[:todos_remaining_count] == 0
   end
 
   def list_class(list)
@@ -54,6 +46,11 @@ def load_list(id)
 
   session[:error] = "The specified list was not found."
   redirect "/lists"
+end
+
+# Retrieve all todos for a specified list
+def load_todos(list_id)
+  @storage.find_todos_for_list(list_id)
 end
 
 before do
@@ -107,6 +104,7 @@ end
 get "/lists/:list_id" do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
+  @todos = load_todos(@list_id)
   erb :list, layout: :layout
 end
 
