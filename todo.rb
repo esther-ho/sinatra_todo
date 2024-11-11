@@ -16,16 +16,8 @@ configure :development do
 end
 
 helpers do
-  def todos_remaining(list)
-    list[:todos].count { |todo| !todo[:completed] }
-  end
-
-  def todo_count(list)
-    list[:todos].size
-  end
-
   def list_completed?(list)
-    todo_count(list) > 0 && todos_remaining(list) == 0
+    list[:todos_count] > 0 && list[:todos_remaining_count] == 0
   end
 
   def list_class(list)
