@@ -48,6 +48,11 @@ def load_list(id)
   redirect "/lists"
 end
 
+# Retrieve all todos for a specified list
+def load_todos(list_id)
+  @storage.find_todos_for_list(list_id)
+end
+
 before do
   @storage = DatabasePersistence.new(logger)
 end
@@ -99,6 +104,7 @@ end
 get "/lists/:list_id" do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
+  @todos = load_todos(@list_id)
   erb :list, layout: :layout
 end
 
